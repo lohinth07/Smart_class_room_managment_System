@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classroom Management System</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.15), transparent 20%),
+        radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.18), transparent 18%),
+        #f8fafc;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: white;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.28);
+    }
+
+    .nav-btn:not(.active):hover {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .status-present { background: #dcfce7; color: #166534; }
+    .status-absent { background: #fee2e2; color: #991b1b; }
+    .status-late { background: #fef3c7; color: #92400e; }
+
+    .mini-scroll::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .mini-scroll::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.5);
+      border-radius: 999px;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800">
+  <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+    <header class="glass rounded-3xl p-6 mb-6">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <p class="text-sm font-semibold text-blue-600 uppercase tracking-[0.2em]">Smart Admin Panel</p>
+          <h1 class="text-3xl sm:text-4xl font-black text-slate-900 mt-1">Classroom Management System</h1>
+          <p class="text-slate-600 mt-2">Manage classes, students, attendance, and assignments in one browser-ready app.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+          <div class="rounded-2xl bg-slate-900 text-white px-4 py-3 min-w-48">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-300">Today</p>
+            <p id="todayLabel" class="text-lg font-bold mt-1"></p>
+          </div>
+          <button id="resetDataBtn" class="rounded-2xl px-4 py-3 bg-white/80 hover:bg-white text-red-600 font-semibold shadow-sm border border-red-100 transition">
+            Reset Demo Data
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid grid-cols-1 xl:grid-cols-[260px_minmax(0,1fr)] gap-6">
+      <aside class="glass rounded-3xl p-4 h-fit xl:sticky xl:top-6">
+        <nav class="grid grid-cols-2 xl:grid-cols-1 gap-3">
+          <button class="nav-btn active rounded-2xl px-4 py-3 text-left font-semibold transition" data-view="dashboard">Dashboard</button>
+          <button class="nav-btn rounded-2xl px-4 py-3 text-left font-semibold transition" data-view="classes">Classes</button>
+          <button class="nav-btn rounded-2xl px-4 py-3 text-left font-semibold transition" data-view="students">Students</button>
+          <button class="nav-btn rounded-2xl px-4 py-3 text-left font-semibold transition" data-view="attendance">Attendance</button>
+          <button class="nav-btn rounded-2xl px-4 py-3 text-left font-semibold transition" data-view="assignments">Assignments</button>
+        </nav>
+
+        <div class="mt-6 rounded-2xl bg-slate-900 text-white p-4">
+          <h3 class="font-bold text-lg">Quick Tips</h3>
+          <ul class="mt-3 space-y-2 text-sm text-slate-300 list-disc list-inside">
+            <li>Add classes first, then assign students.</li>
+            <li>Use attendance view to mark present, absent, or late.</li>
+            <li>Everything is saved automatically in local storage.</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="space-y-6">
+        <section id="view-dashboard" class="view fade-in space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="glass rounded-3xl p-5">
+              <p class="text-sm text-slate-500 font-medium">Total Classes</p>
+              <p id="statClasses" class="text-3xl font-black text-slate-900 mt-2">0</p>
+            </div>
+            <div class="glass rounded-3xl p-5">
+              <p class="text-sm text-slate-500 font-medium">Total Students</p>
+              <p id="statStudents" class="text-3xl font-black text-slate-900 mt-2">0</p>
+            </div>
+            <div class="glass rounded-3xl p-5">
+              <p class="text-sm text-slate-500 font-medium">Attendance Rate</p>
+              <p id="statAttendance" class="text-3xl font-black text-slate-900 mt-2">0%</p>
+            </div>
+            <div class="glass rounded-3xl p-5">
+              <p class="text-sm text-slate-500 font-medium">Assignments</p>
+              <p id="statAssignments" class="text-3xl font-black text-slate-900 mt-2">0</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 2xl:grid-cols-[1.1fr_0.9fr] gap-6">
+            <div class="glass rounded-3xl p-5">
+              <div class="flex items-center justify-between gap-4 mb-4">
+                <div>
+                  <h2 class="text-xl font-bold text-slate-900">Class Overview</h2>
+                  <p class="text-sm text-slate-500">A quick look at each class and student strength.</p>
+                </div>
+              </div>
+              <div id="dashboardClassCards" class="grid sm:grid-cols-2 gap-4"></div>
+            </div>
+
+            <div class="glass rounded-3xl p-5">
+              <div class="flex items-center justify-between gap-4 mb-4">
+                <div>
+                  <h2 class="text-xl font-bold text-slate-900">Today’s Attendance Snapshot</h2>
+                  <p class="text-sm text-slate-500">Based on the selected records for the current date.</p>
+                </div>
+              </div>
+              <div id="todayAttendanceSummary" class="space-y-3"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-classes" class="view hidden fade-in space-y-6">
+          <div class="grid grid-cols-1 2xl:grid-cols-[380px_minmax(0,1fr)] gap-6">
+            <div class="glass rounded-3xl p-5">
+              <h2 class="text-xl font-bold text-slate-900">Add New Class</h2>
+              <p class="text-sm text-slate-500 mt-1">Create and organize classrooms with schedules and room details.</p>
+              <form id="classForm" class="mt-5 space-y-4">
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Class Name</label>
+                  <input required name="name" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Grade 10 - A" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Teacher</label>
+                  <input required name="teacher" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Mrs. Johnson" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-sm font-semibold text-slate-700">Room</label>
+                    <input required name="room" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="B-204" />
+                  </div>
+                  <div>
+                    <label class="text-sm font-semibold text-slate-700">Schedule</label>
+                    <input required name="schedule" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Mon - Fri, 9:00" />
+                  </div>
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Theme Color</label>
+                  <input type="color" name="color" value="#2563eb" class="mt-2 w-full h-12 rounded-2xl border border-slate-200 bg-white/80 px-2 py-2 cursor-pointer" />
+                </div>
+                <button class="w-full rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 font-bold hover:opacity-95 transition">Add Class</button>
+              </form>
+            </div>
+
+            <div class="glass rounded-3xl p-5">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                <div>
+                  <h2 class="text-xl font-bold text-slate-900">All Classes</h2>
+                  <p class="text-sm text-slate-500">Select a class to make it active for attendance and assignments.</p>
+                </div>
+                <div id="activeClassBadge" class="rounded-2xl bg-blue-50 text-blue-700 px-4 py-2 text-sm font-semibold w-fit">No active class selected</div>
+              </div>
+              <div id="classList" class="grid md:grid-cols-2 gap-4"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-students" class="view hidden fade-in space-y-6">
+          <div class="grid grid-cols-1 2xl:grid-cols-[400px_minmax(0,1fr)] gap-6">
+            <div class="glass rounded-3xl p-5">
+              <h2 class="text-xl font-bold text-slate-900">Enroll Student</h2>
+              <p class="text-sm text-slate-500 mt-1">Add students and assign them to a class.</p>
+              <form id="studentForm" class="mt-5 space-y-4">
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Student Name</label>
+                  <input required name="name" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ava Brown" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Email</label>
+                  <input required type="email" name="email" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="ava@student.edu" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Guardian Name</label>
+                  <input required name="guardian" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Michael Brown" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Assign to Class</label>
+                  <select required id="studentClassSelect" name="classId" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"></select>
+                </div>
+                <button class="w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 font-bold hover:opacity-95 transition">Add Student</button>
+              </form>
+            </div>
+
+            <div class="glass rounded-3xl p-5 overflow-hidden">
+              <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                <div>
+                  <h2 class="text-xl font-bold text-slate-900">Student Directory</h2>
+                  <p class="text-sm text-slate-500">Search students by name, email, or guardian.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <input id="studentSearch" class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search students..." />
+                  <select id="studentFilterClass" class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"></select>
+                </div>
+              </div>
+              <div class="overflow-x-auto mini-scroll">
+                <table class="min-w-full text-sm">
+                  <thead>
+                    <tr class="text-left text-slate-500 border-b border-slate-200">
+                      <th class="py-3 pr-4 font-semibold">Student</th>
+                      <th class="py-3 px-4 font-semibold">Email</th>
+                      <th class="py-3 px-4 font-semibold">Guardian</th>
+                      <th class="py-3 px-4 font-semibold">Class</th>
+                      <th class="py-3 pl-4 font-semibold text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="studentTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-attendance" class="view hidden fade-in space-y-6">
+          <div class="glass rounded-3xl p-5">
+            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-5">
+              <div>
+                <h2 class="text-xl font-bold text-slate-900">Attendance Manager</h2>
+                <p class="text-sm text-slate-500">Choose a class and date, then mark each student.</p>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full xl:w-auto">
+                <select id="attendanceClassSelect" class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 min-w-52"></select>
+                <input id="attendanceDate" type="date" class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+                <button id="saveAttendanceBtn" class="rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white px-5 py-3 font-bold hover:opacity-95 transition">Save Attendance</button>
+              </div>
+            </div>
+            <div id="attendanceSummaryCards" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5"></div>
+            <div id="attendanceList" class="space-y-3"></div>
+          </div>
+        </section>
+
+        <section id="view-assignments" class="view hidden fade-in space-y-6">
+          <div class="grid grid-cols-1 2xl:grid-cols-[400px_minmax(0,1fr)] gap-6">
+            <div class="glass rounded-3xl p-5">
+              <h2 class="text-xl font-bold text-slate-900">Create Assignment</h2>
+              <p class="text-sm text-slate-500 mt-1">Add tasks, due dates, and descriptions for each class.</p>
+              <form id="assignmentForm" class="mt-5 space-y-4">
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Class</label>
+                  <select required id="assignmentClassSelect" name="classId" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"></select>
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Title</label>
+                  <input required name="title" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Chapter 5 Worksheet" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Due Date</label>
+                  <input required type="date" name="dueDate" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold text-slate-700">Description</label>
+                  <textarea required name="description" rows="4" class="mt-2 w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="Add assignment details..."></textarea>
+                </div>
+                <button class="w-full rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 font-bold hover:opacity-95 transition">Add Assignment</button>
+              </form>
+            </div>
+
+            <div class="glass rounded-3xl p-5">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                <div>
+                  <h2 class="text-xl font-bold text-slate-900">Assignment Board</h2>
+                  <p class="text-sm text-slate-500">Track class work and deadlines at a glance.</p>
+                </div>
+                <select id="assignmentFilterClass" class="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"></select>
+              </div>
+              <div id="assignmentList" class="space-y-4"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'cms_single_file_app_v1';
+    const today = new Date();
+    const todayISO = today.toISOString().slice(0, 10);
+
+    const demoData = {
+      activeClassId: 'class_1',
+      classes: [
+        {
+          id: 'class_1',
+          name: 'Grade 10 - A',
+          teacher: 'Mrs. Johnson',
+          room: 'B-204',
+          schedule: 'Mon - Fri, 9:00 AM',
+          color: '#2563eb'
+        },
+        {
+          id: 'class_2',
+          name: 'Grade 9 - Science',
+          teacher: 'Mr. Carter',
+          room: 'Lab-3',
+          schedule: 'Mon, Wed, Fri, 11:00 AM',
+          color: '#10b981'
+        },
+        {
+          id: 'class_3',
+          name: 'Grade 8 - English',
+          teacher: 'Ms. Lewis',
+          room: 'A-109',
+          schedule: 'Tue & Thu, 10:30 AM',
+          color: '#f59e0b'
+        }
+      ],
+      students: [
+        { id: 'stu_1', name: 'Ava Brown', email: 'ava@student.edu', guardian: 'Michael Brown', classId: 'class_1' },
+        { id: 'stu_2', name: 'Noah Smith', email: 'noah@student.edu', guardian: 'Elena Smith', classId: 'class_1' },
+        { id: 'stu_3', name: 'Sophia Taylor', email: 'sophia@student.edu', guardian: 'Daniel Taylor', classId: 'class_2' },
+        { id: 'stu_4', name: 'Liam Wilson', email: 'liam@student.edu', guardian: 'Grace Wilson', classId: 'class_2' },
+        { id: 'stu_5', name: 'Mia Anderson', email: 'mia@student.edu', guardian: 'Henry Anderson', classId: 'class_3' },
+        { id: 'stu_6', name: 'Ethan Thomas', email: 'ethan@student.edu', guardian: 'Sophia Thomas', classId: 'class_3' }
+      ],
+      attendance: {
+        [todayISO]: {
+          class_1: { stu_1: 'present', stu_2: 'late' },
+          class_2: { stu_3: 'present', stu_4: 'absent' },
+          class_3: { stu_5: 'present', stu_6: 'present' }
+        }
+      },
+      assignments: [
+        { id: 'asg_1', classId: 'class_1', title: 'Algebra Practice Set', dueDate: shiftDate(3), description: 'Complete questions 1 to 15 from the worksheet.' },
+        { id: 'asg_2', classId: 'class_2', title: 'Lab Observation Report', dueDate: shiftDate(5), description: 'Write a short report about the chemical reaction experiment.' },
+        { id: 'asg_3', classId: 'class_3', title: 'Reading Reflection', dueDate: shiftDate(2), description: 'Summarize the assigned chapter and list 3 new vocabulary words.' }
+      ]
+    };
+
+    function shiftDate(days) {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function uid(prefix) {
+      return prefix + '_' + Math.random().toString(36).slice(2, 9);
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(demoData);
+        return JSON.parse(raw);
+      } catch {
+        return structuredClone(demoData);
+      }
+    }
+
+    let state = loadState();
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function getClassById(id) {
+      return state.classes.find(c => c.id === id);
+    }
+
+    function getStudentsByClass(classId) {
+      return state.students.filter(student => student.classId === classId);
+    }
+
+    function countAssignmentsForClass(classId) {
+      return state.assignments.filter(item => item.classId === classId).length;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      return new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+
+    function showToast(message) {
+      let toast = document.getElementById('toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.className = 'fixed bottom-5 right-5 z-50 rounded-2xl bg-slate-900 text-white px-4 py-3 shadow-2xl text-sm font-semibold opacity-0 translate-y-3 transition-all duration-300';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.classList.remove('opacity-0', 'translate-y-3');
+      toast.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-3');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2200);
+    }
+
+    function getAttendanceFor(classId, date) {
+      return state.attendance?.[date]?.[classId] || {};
+    }
+
+    function setAttendanceFor(classId, date, records) {
+      if (!state.attendance[date]) state.attendance[date] = {};
+      state.attendance[date][classId] = records;
+    }
+
+    function calculateAttendanceStats(date = todayISO) {
+      let present = 0;
+      let late = 0;
+      let absent = 0;
+
+      Object.values(state.attendance?.[date] || {}).forEach(classRecord => {
+        Object.values(classRecord).forEach(status => {
+          if (status === 'present') present++;
+          if (status === 'late') late++;
+          if (status === 'absent') absent++;
+        });
+      });
+
+      const total = present + late + absent;
+      const rate = total ? Math.round(((present + late) / total) * 100) : 0;
+      return { present, late, absent, total, rate };
+    }
+
+    function updateTodayLabel() {
+      document.getElementById('todayLabel').textContent = today.toLocaleDateString(undefined, {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+
+    function renderStats() {
+      document.getElementById('statClasses').textContent = state.classes.length;
+      document.getElementById('statStudents').textContent = state.students.length;
+      document.getElementById('statAssignments').textContent = state.assignments.length;
+      document.getElementById('statAttendance').textContent = calculateAttendanceStats().rate + '%';
+    }
+
+    function renderDashboard() {
+      const classCards = document.getElementById('dashboardClassCards');
+      const summary = document.getElementById('todayAttendanceSummary');
+      classCards.innerHTML = '';
+      summary.innerHTML = '';
+
+      if (!state.classes.length) {
+        classCards.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">No classes available. Add a class to begin.</div>';
+      } else {
+        state.classes.forEach(cls => {
+          const students = getStudentsByClass(cls.id);
+          const assignments = countAssignmentsForClass(cls.id);
+          const attendance = getAttendanceFor(cls.id, todayISO);
+          const totalAttendance = Object.keys(attendance).length;
+          const presentCount = Object.values(attendance).filter(v => v === 'present' || v === 'late').length;
+          const card = document.createElement('div');
+          card.className = 'rounded-3xl p-5 text-white shadow-lg';
+          card.style.background = `linear-gradient(135deg, ${cls.color}, #0f172a)`;
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3 class="text-lg font-bold">${cls.name}</h3>
+                <p class="text-white/80 text-sm mt-1">${cls.teacher} • Room ${cls.room}</p>
+              </div>
+              <button data-select-class="${cls.id}" class="rounded-xl bg-white/20 hover:bg-white/30 px-3 py-2 text-xs font-bold transition">Set Active</button>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mt-5 text-center">
+              <div class="rounded-2xl bg-white/15 p-3">
+                <p class="text-xs uppercase tracking-wide text-white/70">Students</p>
+                <p class="text-xl font-black mt-1">${students.length}</p>
+              </div>
+              <div class="rounded-2xl bg-white/15 p-3">
+                <p class="text-xs uppercase tracking-wide text-white/70">Tasks</p>
+                <p class="text-xl font-black mt-1">${assignments}</p>
+              </div>
+              <div class="rounded-2xl bg-white/15 p-3">
+                <p class="text-xs uppercase tracking-wide text-white/70">Marked</p>
+                <p class="text-xl font-black mt-1">${totalAttendance ? Math.round((presentCount / totalAttendance) * 100) : 0}%</p>
+              </div>
+            </div>
+            <p class="text-xs text-white/75 mt-4">${cls.schedule}</p>
+          `;
+          classCards.appendChild(card);
+        });
+      }
+
+      const stats = calculateAttendanceStats(todayISO);
+      const items = [
+        { label: 'Present', value: stats.present, style: 'status-present' },
+        { label: 'Late', value: stats.late, style: 'status-late' },
+        { label: 'Absent', value: stats.absent, style: 'status-absent' },
+        { label: 'Overall Rate', value: stats.rate + '%', style: 'bg-blue-50 text-blue-700' }
+      ];
+
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between rounded-2xl bg-slate-50 border border-slate-100 px-4 py-4';
+        row.innerHTML = `
+          <span class="font-semibold text-slate-700">${item.label}</span>
+          <span class="status-pill ${item.style}">${item.value}</span>
+        `;
+        summary.appendChild(row);
+      });
+    }
+
+    function renderClasses() {
+      const classList = document.getElementById('classList');
+      const activeBadge = document.getElementById('activeClassBadge');
+      classList.innerHTML = '';
+      const activeClass = getClassById(state.activeClassId);
+      activeBadge.textContent = activeClass ? `Active Class: ${activeClass.name}` : 'No active class selected';
+
+      if (!state.classes.length) {
+        classList.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">No classes created yet.</div>';
+        return;
+      }
+
+      state.classes.forEach(cls => {
+        const students = getStudentsByClass(cls.id);
+        const assignmentCount = countAssignmentsForClass(cls.id);
+        const isActive = state.activeClassId === cls.id;
+
+        const card = document.createElement('div');
+        card.className = 'rounded-3xl border p-5 transition ' + (isActive ? 'border-blue-400 shadow-lg bg-blue-50/60' : 'border-slate-200 bg-white/60');
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="w-4 h-14 rounded-full" style="background:${cls.color}"></div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">${cls.name}</h3>
+                <p class="text-sm text-slate-500 mt-1">${cls.teacher}</p>
+              </div>
+            </div>
+            ${isActive ? '<span class="status-pill bg-blue-600 text-white">Active</span>' : ''}
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-4 text-sm">
+            <div class="rounded-2xl bg-slate-50 px-4 py-3"><span class="text-slate-500">Room</span><div class="font-bold text-slate-800 mt-1">${cls.room}</div></div>
+            <div class="rounded-2xl bg-slate-50 px-4 py-3"><span class="text-slate-500">Students</span><div class="font-bold text-slate-800 mt-1">${students.length}</div></div>
+            <div class="rounded-2xl bg-slate-50 px-4 py-3 col-span-2"><span class="text-slate-500">Schedule</span><div class="font-bold text-slate-800 mt-1">${cls.schedule}</div></div>
+            <div class="rounded-2xl bg-slate-50 px-4 py-3 col-span-2"><span class="text-slate-500">Assignments</span><div class="font-bold text-slate-800 mt-1">${assignmentCount}</div></div>
+          </div>
+          <div class="flex gap-2 mt-5">
+            <button data-select-class="${cls.id}" class="flex-1 rounded-2xl bg-slate-900 text-white px-4 py-3 font-semibold hover:opacity-95 transition">Select</button>
+            <button data-delete-class="${cls.id}" class="rounded-2xl bg-red-50 text-red-600 px-4 py-3 font-semibold hover:bg-red-100 transition">Delete</button>
+          </div>
+        `;
+        classList.appendChild(card);
+      });
+    }
+
+    function fillClassSelect(select, options = {}) {
+      const { includeAll = false, allLabel = 'All Classes', placeholder = 'Select Class', selected = '' } = options;
+      select.innerHTML = '';
+
+      if (includeAll) {
+        const allOption = document.createElement('option');
+        allOption.value = 'all';
+        allOption.textContent = allLabel;
+        select.appendChild(allOption);
+      } else {
+        const ph = document.createElement('option');
+        ph.value = '';
+        ph.textContent = state.classes.length ? placeholder : 'No classes available';
+        ph.disabled = true;
+        ph.selected = !selected;
+        select.appendChild(ph);
+      }
+
+      state.classes.forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls.id;
+        option.textContent = cls.name;
+        if (selected === cls.id) option.selected = true;
+        select.appendChild(option);
+      });
+
+      if (includeAll && selected) select.value = selected;
+      if (!includeAll && state.classes.length && selected) select.value = selected;
+    }
+
+    function renderStudents() {
+      const tbody = document.getElementById('studentTableBody');
+      const search = document.getElementById('studentSearch').value.trim().toLowerCase();
+      const classFilter = document.getElementById('studentFilterClass').value;
+      tbody.innerHTML = '';
+
+      let students = [...state.students];
+      if (classFilter && classFilter !== 'all') {
+        students = students.filter(s => s.classId === classFilter);
+      }
+      if (search) {
+        students = students.filter(s => [s.name, s.email, s.guardian].some(v => v.toLowerCase().includes(search)));
+      }
+
+      if (!students.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-500">No matching students found.</td></tr>';
+        return;
+      }
+
+      students.forEach(student => {
+        const cls = getClassById(student.classId);
+        const row = document.createElement('tr');
+        row.className = 'border-b border-slate-100 hover:bg-slate-50/70';
+        row.innerHTML = `
+          <td class="py-4 pr-4 font-semibold text-slate-800">${student.name}</td>
+          <td class="py-4 px-4 text-slate-600">${student.email}</td>
+          <td class="py-4 px-4 text-slate-600">${student.guardian}</td>
+          <td class="py-4 px-4"><span class="status-pill bg-slate-100 text-slate-700">${cls ? cls.name : 'Unassigned'}</span></td>
+          <td class="py-4 pl-4 text-right"><button data-delete-student="${student.id}" class="rounded-xl bg-red-50 text-red-600 px-3 py-2 font-semibold hover:bg-red-100 transition">Remove</button></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderAttendance() {
+      const classSelect = document.getElementById('attendanceClassSelect');
+      let selectedClassId = classSelect.value || state.activeClassId || state.classes[0]?.id || '';
+      fillClassSelect(classSelect, { placeholder: 'Choose Class', selected: selectedClassId });
+      if (!selectedClassId && state.classes[0]) {
+        selectedClassId = state.classes[0].id;
+        classSelect.value = selectedClassId;
+      }
+
+      const dateInput = document.getElementById('attendanceDate');
+      if (!dateInput.value) dateInput.value = todayISO;
+      const selectedDate = dateInput.value;
+      const list = document.getElementById('attendanceList');
+      const summaryCards = document.getElementById('attendanceSummaryCards');
+      list.innerHTML = '';
+      summaryCards.innerHTML = '';
+
+      if (!selectedClassId) {
+        list.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">Add a class to start marking attendance.</div>';
+        return;
+      }
+
+      const students = getStudentsByClass(selectedClassId);
+      const records = { ...getAttendanceFor(selectedClassId, selectedDate) };
+      const counts = { present: 0, late: 0, absent: 0 };
+      Object.values(records).forEach(status => { if (counts[status] !== undefined) counts[status]++; });
+
+      [
+        { label: 'Present', value: counts.present, css: 'status-present' },
+        { label: 'Late', value: counts.late, css: 'status-late' },
+        { label: 'Absent', value: counts.absent, css: 'status-absent' }
+      ].forEach(card => {
+        const el = document.createElement('div');
+        el.className = 'rounded-2xl bg-slate-50 border border-slate-100 p-4';
+        el.innerHTML = `<p class="text-sm text-slate-500">${card.label}</p><p class="text-2xl font-black text-slate-900 mt-1">${card.value}</p>`;
+        summaryCards.appendChild(el);
+      });
+
+      if (!students.length) {
+        list.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">No students enrolled in this class yet.</div>';
+        return;
+      }
+
+      students.forEach(student => {
+        const current = records[student.id] || 'present';
+        const row = document.createElement('div');
+        row.className = 'rounded-2xl border border-slate-200 bg-white/70 p-4';
+        row.innerHTML = `
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h3 class="font-bold text-slate-900">${student.name}</h3>
+              <p class="text-sm text-slate-500">${student.email} • Guardian: ${student.guardian}</p>
+            </div>
+            <div class="flex flex-wrap gap-2" data-student-status-group="${student.id}">
+              ${statusButton(student.id, 'present', current)}
+              ${statusButton(student.id, 'late', current)}
+              ${statusButton(student.id, 'absent', current)}
+            </div>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function statusButton(studentId, status, current) {
+      const base = 'rounded-xl px-4 py-2 text-sm font-bold transition border';
+      const active = {
+        present: 'bg-emerald-600 text-white border-emerald-600',
+        late: 'bg-amber-500 text-white border-amber-500',
+        absent: 'bg-red-500 text-white border-red-500'
+      };
+      const idle = 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50';
+      return `<button data-set-attendance="${studentId}:${status}" class="${base} ${current === status ? active[status] : idle}">${status[0].toUpperCase() + status.slice(1)}</button>`;
+    }
+
+    function renderAssignments() {
+      const filter = document.getElementById('assignmentFilterClass');
+      fillClassSelect(filter, { includeAll: true, selected: filter.value || 'all' });
+      const list = document.getElementById('assignmentList');
+      const classId = filter.value || 'all';
+      let assignments = [...state.assignments];
+
+      if (classId !== 'all') assignments = assignments.filter(item => item.classId === classId);
+      assignments.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+      list.innerHTML = '';
+
+      if (!assignments.length) {
+        list.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 p-6 text-slate-500">No assignments available.</div>';
+        return;
+      }
+
+      assignments.forEach(item => {
+        const cls = getClassById(item.classId);
+        const overdue = item.dueDate < todayISO;
+        const card = document.createElement('div');
+        card.className = 'rounded-3xl border border-slate-200 bg-white/70 p-5';
+        card.innerHTML = `
+          <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="status-pill" style="background:${cls ? cls.color + '20' : '#e2e8f0'}; color:${cls ? cls.color : '#334155'}">${cls ? cls.name : 'Unknown Class'}</span>
+                <span class="status-pill ${overdue ? 'status-absent' : 'status-present'}">${overdue ? 'Overdue' : 'Upcoming'}</span>
+              </div>
+              <h3 class="text-lg font-bold text-slate-900">${item.title}</h3>
+              <p class="text-sm text-slate-500 mt-1">Due: ${formatDate(item.dueDate)}</p>
+              <p class="text-slate-700 mt-3 leading-6">${item.description}</p>
+            </div>
+            <button data-delete-assignment="${item.id}" class="rounded-2xl bg-red-50 text-red-600 px-4 py-3 font-semibold hover:bg-red-100 transition h-fit">Delete</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function syncSelects() {
+      fillClassSelect(document.getElementById('studentClassSelect'), {
+        placeholder: 'Select Class',
+        selected: state.activeClassId || state.classes[0]?.id || ''
+      });
+
+      fillClassSelect(document.getElementById('studentFilterClass'), {
+        includeAll: true,
+        selected: document.getElementById('studentFilterClass').value || 'all'
+      });
+
+      fillClassSelect(document.getElementById('attendanceClassSelect'), {
+        placeholder: 'Choose Class',
+        selected: document.getElementById('attendanceClassSelect').value || state.activeClassId || state.classes[0]?.id || ''
+      });
+
+      fillClassSelect(document.getElementById('assignmentClassSelect'), {
+        placeholder: 'Select Class',
+        selected: state.activeClassId || state.classes[0]?.id || ''
+      });
+
+      fillClassSelect(document.getElementById('assignmentFilterClass'), {
+        includeAll: true,
+        selected: document.getElementById('assignmentFilterClass').value || 'all'
+      });
+    }
+
+    function renderAll() {
+      updateTodayLabel();
+      syncSelects();
+      renderStats();
+      renderDashboard();
+      renderClasses();
+      renderStudents();
+      renderAttendance();
+      renderAssignments();
+      saveState();
+    }
+
+    function switchView(viewName) {
+      document.querySelectorAll('.view').forEach(view => view.classList.add('hidden'));
+      document.getElementById('view-' + viewName).classList.remove('hidden');
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewName));
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchView(btn.dataset.view));
+    });
+
+    document.getElementById('classForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      const newClass = {
+        id: uid('class'),
+        name: formData.get('name').toString().trim(),
+        teacher: formData.get('teacher').toString().trim(),
+        room: formData.get('room').toString().trim(),
+        schedule: formData.get('schedule').toString().trim(),
+        color: formData.get('color').toString()
+      };
+      state.classes.push(newClass);
+      state.activeClassId = newClass.id;
+      form.reset();
+      form.color.value = '#2563eb';
+      renderAll();
+      showToast('Class added successfully');
+    });
+
+    document.getElementById('studentForm').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!state.classes.length) {
+        showToast('Please add a class first');
+        return;
+      }
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      state.students.push({
+        id: uid('stu'),
+        name: formData.get('name').toString().trim(),
+        email: formData.get('email').toString().trim(),
+        guardian: formData.get('guardian').toString().trim(),
+        classId: formData.get('classId').toString()
+      });
+      form.reset();
+      renderAll();
+      showToast('Student enrolled successfully');
+    });
+
+    document.getElementById('assignmentForm').addEventListener('submit', event => {
+      event.preventDefault();
+      if (!state.classes.length) {
+        showToast('Please add a class first');
+        return;
+      }
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      state.assignments.push({
+        id: uid('asg'),
+        classId: formData.get('classId').toString(),
+        title: formData.get('title').toString().trim(),
+        dueDate: formData.get('dueDate').toString(),
+        description: formData.get('description').toString().trim()
+      });
+      form.reset();
+      renderAll();
+      showToast('Assignment created successfully');
+    });
+
+    document.getElementById('studentSearch').addEventListener('input', renderStudents);
+    document.getElementById('studentFilterClass').addEventListener('change', renderStudents);
+    document.getElementById('attendanceClassSelect').addEventListener('change', renderAttendance);
+    document.getElementById('attendanceDate').addEventListener('change', renderAttendance);
+    document.getElementById('assignmentFilterClass').addEventListener('change', renderAssignments);
+
+    document.getElementById('saveAttendanceBtn').addEventListener('click', () => {
+      renderAll();
+      showToast('Attendance saved successfully');
+    });
+
+    document.getElementById('resetDataBtn').addEventListener('click', () => {
+      state = structuredClone(demoData);
+      renderAll();
+      showToast('Demo data restored');
+    });
+
+    document.addEventListener('click', event => {
+      const selectClassBtn = event.target.closest('[data-select-class]');
+      if (selectClassBtn) {
+        state.activeClassId = selectClassBtn.dataset.selectClass;
+        renderAll();
+        showToast('Active class updated');
+        return;
+      }
+
+      const deleteClassBtn = event.target.closest('[data-delete-class]');
+      if (deleteClassBtn) {
+        const classId = deleteClassBtn.dataset.deleteClass;
+        const cls = getClassById(classId);
+        if (!cls) return;
+
+        state.classes = state.classes.filter(c => c.id !== classId);
+        state.students = state.students.filter(s => s.classId !== classId);
+        state.assignments = state.assignments.filter(a => a.classId !== classId);
+        Object.keys(state.attendance).forEach(date => {
+          if (state.attendance[date][classId]) delete state.attendance[date][classId];
+        });
+        if (state.activeClassId === classId) state.activeClassId = state.classes[0]?.id || '';
+        renderAll();
+        showToast(`Deleted ${cls.name}`);
+        return;
+      }
+
+      const deleteStudentBtn = event.target.closest('[data-delete-student]');
+      if (deleteStudentBtn) {
+        const studentId = deleteStudentBtn.dataset.deleteStudent;
+        state.students = state.students.filter(s => s.id !== studentId);
+        Object.keys(state.attendance).forEach(date => {
+          Object.keys(state.attendance[date]).forEach(classId => {
+            if (state.attendance[date][classId][studentId]) delete state.attendance[date][classId][studentId];
+          });
+        });
+        renderAll();
+        showToast('Student removed');
+        return;
+      }
+
+      const deleteAssignmentBtn = event.target.closest('[data-delete-assignment]');
+      if (deleteAssignmentBtn) {
+        const assignmentId = deleteAssignmentBtn.dataset.deleteAssignment;
+        state.assignments = state.assignments.filter(item => item.id !== assignmentId);
+        renderAll();
+        showToast('Assignment deleted');
+        return;
+      }
+
+      const setAttendanceBtn = event.target.closest('[data-set-attendance]');
+      if (setAttendanceBtn) {
+        const [studentId, status] = setAttendanceBtn.dataset.setAttendance.split(':');
+        const classId = document.getElementById('attendanceClassSelect').value;
+        const date = document.getElementById('attendanceDate').value;
+        const records = { ...getAttendanceFor(classId, date) };
+        records[studentId] = status;
+        setAttendanceFor(classId, date, records);
+        renderAttendance();
+      }
+    });
+
+    updateTodayLabel();
+    document.getElementById('attendanceDate').value = todayISO;
+    switchView('dashboard');
+    renderAll();
+  </script>
+</body>
+</html>
