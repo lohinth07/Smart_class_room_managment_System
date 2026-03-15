@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom | Students</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Main Premium CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* Shared Dashboard Layout Styles from dashboard.html */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.5);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .dark-mode .sidebar { background: rgba(30, 41, 59, 0.8); border-right-color: rgba(255, 255, 255, 0.1); }
+        .sidebar-brand { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-menu li a { display: flex; align-items: center; gap: 15px; padding: 14px 20px; text-decoration: none; color: var(--text-muted); font-weight: 500; border-radius: 12px; transition: all 0.3s ease; }
+        .sidebar-menu li a:hover, .sidebar-menu li.active a { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); transform: translateX(5px); }
+        .dark-mode .sidebar-menu li a { color: #94a3b8; }
+        .dark-mode .sidebar-menu li a:hover, .dark-mode .sidebar-menu li.active a { color: white; }
+        
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(255, 255, 255, 0.5); }
+        .dark-mode .topbar { background: rgba(30, 41, 59, 0.6); border-color: rgba(255, 255, 255, 0.05); }
+
+        /* Module Specific Styles */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            width: 300px;
+        }
+
+        .dark-mode .search-box {
+            background: rgba(30, 41, 59, 0.6); border-color: rgba(255, 255, 255, 0.1); color: white;
+        }
+
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            padding-left: 10px;
+            width: 100%;
+        }
+
+        .dark-mode .search-box input { color: white; }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--primary-color), #6366f1);
+            color: white; padding: 12px 20px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
+
+        .data-table-container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .dark-mode .data-table-container {
+            background: rgba(30, 41, 59, 0.7); border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .dark-mode th, .dark-mode td { border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 13px; }
+        .dark-mode th { color: #94a3b8; }
+        
+        .action-btns button {
+            background: none; border: none; cursor: pointer; font-size: 16px; margin-right: 10px; transition: 0.2s;
+        }
+        .btn-edit { color: #3b82f6; } .btn-edit:hover { color: #2563eb; transform: scale(1.1); }
+        .btn-delete { color: #ef4444; } .btn-delete:hover { color: #dc2626; transform: scale(1.1); }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: 0.3s; z-index: 1000;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-card {
+            background: white; padding: 30px; border-radius: 16px; width: 400px;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .dark-mode .modal-card { background: #1e293b; color: white; border: 1px solid rgba(255,255,255,0.1); }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
+        .dark-mode .modal-close { color: #94a3b8; }
+        .form-control { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; background: #f9fafb; }
+        .dark-mode .form-control { background: #0f172a; border-color: rgba(255,255,255,0.1); color: white; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-brand"><i class="fa-solid fa-graduation-cap"></i> SmartClass</div>
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                    <li class="active"><a href="Students.html"><i class="fa-solid fa-user-graduate"></i> Students</a></li>
+                    <li><a href="teachers.html"><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
+                    <li><a href="attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a></li>
+                    <li><a href="assignments.html"><i class="fa-solid fa-book-open"></i> Assignments</a></li>
+                    <li><a href="announcements.html"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+                    <li><a href="timetable.html"><i class="fa-solid fa-clock"></i> Timetable</a></li>
+                </ul>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Student Management</h2>
+                <div class="user-profile">
+                    <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                </div>
+            </header>
+
+            <div class="action-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search students..." onkeyup="filterTable()">
+                </div>
+                <button class="btn-add" onclick="openModal()"><i class="fa-solid fa-plus"></i> Add Student</button>
+            </div>
+
+            <div class="data-table-container">
+                <table id="studentTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Grade/Class</th>
+                            <th>Contact</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <!-- Student Rows will be populated dynamically by app.js -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Add New Student</h3>
+                <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="studentDataForm" onsubmit="saveStudent(event)">
+                <input type="hidden" id="studentIdInput">
+                <input type="text" id="studentNameInput" class="form-control" placeholder="Student Name" required>
+                <input type="text" id="studentGradeInput" class="form-control" placeholder="Grade & Section" required>
+                <input type="email" id="studentEmailInput" class="form-control" placeholder="Email Address" required>
+                <button type="submit" class="btn-add" style="width: 100%; justify-content: center; margin-top: 10px;">Save Student</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Main app.js handles toggleTheme
+        
+        function openModal(editingId = null) { 
+            const modal = document.getElementById('studentModal');
+            const form = document.getElementById('studentDataForm');
+            
+            if(editingId) {
+                // Pre-fill form
+                const students = JSON.parse(localStorage.getItem('studentsData')) || [];
+                const student = students.find(s => s.id === editingId);
+                if(student) {
+                    document.getElementById('studentIdInput').value = student.id;
+                    document.getElementById('studentNameInput').value = student.name;
+                    document.getElementById('studentGradeInput').value = student.grade;
+                    document.getElementById('studentEmailInput').value = student.email;
+                    document.querySelector('.modal-header h3').innerText = "Edit Student";
+                }
+            } else {
+                form.reset();
+                document.getElementById('studentIdInput').value = "";
+                document.querySelector('.modal-header h3').innerText = "Add New Student";
+            }
+            
+            modal.classList.add('active'); 
+        }
+        
+        function closeModal() { document.getElementById('studentModal').classList.remove('active'); }
+        
+        // Expose editing/deleting functions globally for onclick from app.js generated HTML
+        window.editStudent = function(id) { openModal(id); };
+        window.deleteStudent = function(id) { deleteStudentData(id); };
+
+        function filterTable() {
+            let input = document.getElementById("searchInput");
+            let filter = input.value.toUpperCase();
+            let table = document.getElementById("studentTable");
+            let tr = table.getElementsByTagName("tr");
+            for (let i = 1; i < tr.length; i++) {
+                let textValue = tr[i].textContent || tr[i].innerText;
+                if (textValue.toUpperCase().indexOf(filter) > -1) { tr[i].style.display = ""; } 
+                else { tr[i].style.display = "none"; }
+            }
+        }
+    </script>
+</body>
+</html>

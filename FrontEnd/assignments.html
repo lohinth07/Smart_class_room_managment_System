@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom | Assignments</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <style>
+        .sidebar { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column; justify-content: space-between; }
+        .dark-mode .sidebar { background: rgba(30,41,59,0.8); border-right-color: rgba(255,255,255,0.1); }
+        .sidebar-brand { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-menu li a { display: flex; align-items: center; gap: 15px; padding: 14px 20px; text-decoration: none; color: var(--text-muted); font-weight: 500; border-radius: 12px; transition: 0.3s; }
+        .sidebar-menu li a:hover, .sidebar-menu li.active a { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(79,70,229,0.3); transform: translateX(5px); }
+        .dark-mode .sidebar-menu li a { color: #94a3b8; } .dark-mode .sidebar-menu li a:hover, .dark-mode .sidebar-menu li.active a { color: white; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.5); }
+        .dark-mode .topbar { background: rgba(30,41,59,0.6); border-color: rgba(255,255,255,0.05); }
+
+        .assignment-layout {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+
+        @media(max-width: 1000px) {
+            .assignment-layout { grid-template-columns: 1fr; }
+        }
+
+        .panel-card {
+            background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .dark-mode .panel-card { background: rgba(30,41,59,0.7); border-color: rgba(255,255,255,0.1); }
+        
+        .panel-card h3 { margin-bottom: 20px; font-size: 18px; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+        .dark-mode .panel-card h3 { color: white; }
+
+        .form-control { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ddd; background: #f9fafb; font-family: inherit; }
+        .dark-mode .form-control { background: #0f172a; border-color: rgba(255,255,255,0.1); color: white; }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+
+        .file-upload-box {
+            border: 2px dashed rgba(79, 70, 229, 0.4); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(79, 70, 229, 0.05); margin-bottom: 15px;
+        }
+        .file-upload-box:hover { background: rgba(79, 70, 229, 0.1); border-color: var(--primary-color); }
+        .file-upload-box i { font-size: 40px; color: var(--primary-color); margin-bottom: 10px; }
+
+        .btn-submit { background: linear-gradient(135deg, var(--primary-color), #6366f1); color: white; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; width: 100%; transition: 0.3s; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79,70,229,0.4); }
+
+        /* Assignment Item List */
+        .assignment-item {
+            background: white; border-radius: 12px; padding: 20px; border: 1px solid #eee; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s;
+        }
+        .dark-mode .assignment-item { background: #1e293b; border-color: rgba(255,255,255,0.1); }
+        .assignment-item:hover { transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        
+        .assign-info h4 { margin-bottom: 5px; font-size: 16px; }
+        .assign-info p { color: var(--text-muted); font-size: 13px; }
+        .dark-mode .assign-info p { color: #94a3b8; }
+        .assign-meta { display: flex; gap: 15px; margin-top: 10px; font-size: 12px; font-weight: 600; }
+        .deadline { color: #ef4444; } .dark-mode .deadline { color: #f87171; }
+        
+        .btn-download { background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 8px 15px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-download:hover { background: var(--primary-color); color: white; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-brand"><i class="fa-solid fa-graduation-cap"></i> SmartClass</div>
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                    <li><a href="Students.html"><i class="fa-solid fa-user-graduate"></i> Students</a></li>
+                    <li><a href="teachers.html"><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
+                    <li><a href="attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a></li>
+                    <li class="active"><a href="assignments.html"><i class="fa-solid fa-book-open"></i> Assignments</a></li>
+                    <li><a href="announcements.html"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+                    <li><a href="timetable.html"><i class="fa-solid fa-clock"></i> Timetable</a></li>
+                </ul>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Assignments Manager</h2>
+                <div class="user-profile">
+                    <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                </div>
+            </header>
+
+            <div class="assignment-layout">
+                <!-- Upload Form -->
+                <div class="panel-card" id="uploadPanel">
+                    <h3><i class="fa-solid fa-cloud-arrow-up"></i> Create Assignment</h3>
+                    <form onsubmit="handleUpload(event)">
+                        <input type="text" class="form-control" placeholder="Assignment Title" required>
+                        <select class="form-control" required>
+                            <option value="">Select Target Class/Group</option>
+                            <option>Grade 10 - All</option>
+                            <option>Grade 10 - Mathematics</option>
+                        </select>
+                        <input type="date" class="form-control" title="Due Date" required>
+                        <textarea class="form-control" placeholder="Description/Instructions"></textarea>
+                        
+                        <div class="file-upload-box" onclick="document.getElementById('fileInput').click()">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <p>Click to browse or drag file here</p>
+                            <input type="file" id="fileInput" style="display:none;" onchange="alert('File selected: ' + this.value)">
+                        </div>
+                        
+                        <button type="submit" class="btn-submit">Publish Assignment</button>
+                    </form>
+                </div>
+
+                <!-- Assignment List -->
+                <div class="panel-card">
+                    <h3><i class="fa-solid fa-list-check"></i> Active Assignments</h3>
+                    
+                    <div class="assignment-item">
+                        <div class="assign-info">
+                            <h4>Algebraic Equations Worksheet 1</h4>
+                            <p>Mathematics - Grade 10 A</p>
+                            <div class="assign-meta">
+                                <span class="deadline"><i class="fa-regular fa-clock"></i> Due: Tomorrow</span>
+                                <span style="color:var(--secondary-color)"><i class="fa-solid fa-check-double"></i> 24/30 Submitted</span>
+                            </div>
+                        </div>
+                        <button class="btn-download"><i class="fa-solid fa-download"></i> Get File</button>
+                    </div>
+
+                    <div class="assignment-item">
+                        <div class="assign-info">
+                            <h4>Physics Lab Report - Gravity</h4>
+                            <p>Physics - Grade 10</p>
+                            <div class="assign-meta">
+                                <span class="deadline"><i class="fa-regular fa-clock"></i> Due: Next Week</span>
+                                <span style="color:var(--secondary-color)"><i class="fa-solid fa-check-double"></i> 5/30 Submitted</span>
+                            </div>
+                        </div>
+                        <button class="btn-download"><i class="fa-solid fa-download"></i> Get File</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Main app.js handles toggleTheme
+        function handleUpload(e) { e.preventDefault(); alert("Assignment uploaded successfully! (Mock Action)"); }
+    </script>
+</body>
+</html>

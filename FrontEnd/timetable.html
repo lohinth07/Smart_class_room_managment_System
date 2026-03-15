@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom | Timetable</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <style>
+        .sidebar { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column; justify-content: space-between; }
+        .dark-mode .sidebar { background: rgba(30,41,59,0.8); border-right-color: rgba(255,255,255,0.1); }
+        .sidebar-brand { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-menu li a { display: flex; align-items: center; gap: 15px; padding: 14px 20px; text-decoration: none; color: var(--text-muted); font-weight: 500; border-radius: 12px; transition: 0.3s; }
+        .sidebar-menu li a:hover, .sidebar-menu li.active a { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(79,70,229,0.3); transform: translateX(5px); }
+        .dark-mode .sidebar-menu li a { color: #94a3b8; } .dark-mode .sidebar-menu li a:hover, .dark-mode .sidebar-menu li.active a { color: white; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.5); }
+        .dark-mode .topbar { background: rgba(30,41,59,0.6); border-color: rgba(255,255,255,0.05); }
+
+        .timetable-container {
+            background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow-x: auto;
+        }
+        .dark-mode .timetable-container { background: rgba(30,41,59,0.7); border-color: rgba(255,255,255,0.1); }
+
+        .timetable-table { width: 100%; border-collapse: separate; border-spacing: 5px; }
+        
+        .timetable-table th { 
+            background: linear-gradient(135deg, var(--primary-color), #6366f1);
+            color: white; padding: 15px; border-radius: 12px; font-weight: 600; text-align: center; font-size: 15px; 
+            box-shadow: 0 4px 15px rgba(79,70,229,0.2); 
+        }
+
+        .timetable-table td {
+            background: rgba(255,255,255,0.8);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: 0.3s;
+            position: relative;
+        }
+        .dark-mode .timetable-table td { background: rgba(15,23,42,0.6); border-color: rgba(255,255,255,0.05); }
+
+        .timetable-table td:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 10; border-color: var(--primary-color); }
+        
+        .time-col { 
+            background: rgba(255,255,255,0.9) !important;
+            font-weight: 700; color: var(--text-dark); 
+        }
+        .dark-mode .time-col { background: rgba(30,41,59,0.9) !important; color: white; }
+
+        .subject-block {
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .subject-name { font-weight: 700; color: var(--primary-color); font-size: 16px; }
+        .teacher-name { font-size: 12px; color: var(--text-muted); display:flex; align-items:center; justify-content:center; gap:5px; }
+        .dark-mode .teacher-name { color: #94a3b8; }
+        
+        .break-block { background: rgba(245, 158, 11, 0.1) !important; color: #d97706; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+        .dark-mode .break-block { background: rgba(245, 158, 11, 0.2) !important; color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-brand"><i class="fa-solid fa-graduation-cap"></i> SmartClass</div>
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                    <li><a href="Students.html"><i class="fa-solid fa-user-graduate"></i> Students</a></li>
+                    <li><a href="teachers.html"><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
+                    <li><a href="attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a></li>
+                    <li><a href="assignments.html"><i class="fa-solid fa-book-open"></i> Assignments</a></li>
+                    <li><a href="announcements.html"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+                    <li class="active"><a href="timetable.html"><i class="fa-solid fa-clock"></i> Timetable</a></li>
+                </ul>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Weekly Timetable (Grade 10)</h2>
+                <div class="user-profile">
+                    <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                </div>
+            </header>
+
+            <div class="timetable-container">
+                <table class="timetable-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Monday</th>
+                            <th>Tuesday</th>
+                            <th>Wednesday</th>
+                            <th>Thursday</th>
+                            <th>Friday</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="time-col"><i class="fa-regular fa-clock"></i> 08:00 AM</td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Mathematics</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Mr. W Roberts</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Physics</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Ms. S Connor</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">English</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Mr. Davies</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Chemistry</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Dr. Banner</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Mathematics</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Mr. W Roberts</span>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td class="time-col"><i class="fa-regular fa-clock"></i> 09:00 AM</td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Chemistry</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Dr. Banner</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Mathematics</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Mr. W Roberts</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Biology</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Dr. Palmer</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Physics</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Ms. S Connor</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">English</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Mr. Davies</span>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Break -->
+                        <tr>
+                            <td class="time-col"><i class="fa-regular fa-clock"></i> 10:00 AM</td>
+                            <td colspan="5" class="break-block"><i class="fa-solid fa-mug-hot"></i> Recess / Break Time</td>
+                        </tr>
+
+                        <tr>
+                            <td class="time-col"><i class="fa-regular fa-clock"></i> 10:30 AM</td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Computer Sci</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Mr. Gates</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">History</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Ms. Croft</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Mathematics</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Mr. W Roberts</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Computer Sci</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-user-tie"></i> Mr. Gates</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="subject-block">
+                                    <span class="subject-name">Physical Ed</span>
+                                    <span class="teacher-name"><i class="fa-solid fa-person-running"></i> Coach Carter</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Main app.js handles toggleTheme
+    </script>
+</body>
+</html>

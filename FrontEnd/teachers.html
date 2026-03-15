@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom | Teachers</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <!-- Using the same layout CSS exactly as Students to avoid repetition, 
+         normally in a real app these would be in style.css or dashboard.css 
+         but we keep it inline per-page for simplicity as requested by file structure -->
+    <style>
+        .sidebar { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column; justify-content: space-between; }
+        .dark-mode .sidebar { background: rgba(30,41,59,0.8); border-right-color: rgba(255,255,255,0.1); }
+        .sidebar-brand { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-menu li a { display: flex; align-items: center; gap: 15px; padding: 14px 20px; text-decoration: none; color: var(--text-muted); font-weight: 500; border-radius: 12px; transition: 0.3s; }
+        .sidebar-menu li a:hover, .sidebar-menu li.active a { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(79,70,229,0.3); transform: translateX(5px); }
+        .dark-mode .sidebar-menu li a { color: #94a3b8; } .dark-mode .sidebar-menu li a:hover, .dark-mode .sidebar-menu li.active a { color: white; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.5); }
+        .dark-mode .topbar { background: rgba(30,41,59,0.6); border-color: rgba(255,255,255,0.05); }
+
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .search-box { display: flex; align-items: center; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); padding: 10px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.5); width: 300px; }
+        .dark-mode .search-box { background: rgba(30,41,59,0.6); border-color: rgba(255,255,255,0.1); color: white; }
+        .search-box input { border: none; background: transparent; outline: none; padding-left: 10px; width: 100%; }
+        .dark-mode .search-box input { color: white; }
+        .btn-add { background: linear-gradient(135deg, var(--primary-color), #6366f1); color: white; padding: 12px 20px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(79,70,229,0.3); display: flex; align-items: center; gap: 8px; }
+        .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79,70,229,0.4); }
+
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .teacher-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; padding: 25px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.05); transition: 0.3s; }
+        .dark-mode .teacher-card { background: rgba(30,41,59,0.7); border-color: rgba(255,255,255,0.1); color: white; }
+        .teacher-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .teacher-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #10b981, #34d399); color: white; display: flex; justify-content: center; align-items: center; font-size: 30px; border-radius: 50%; margin: 0 auto 15px; }
+        .teacher-name { font-size: 18px; font-weight: 700; margin-bottom: 5px; }
+        .teacher-subject { color: var(--primary-color); font-weight: 600; font-size: 14px; margin-bottom: 15px; }
+        .teacher-actions { display: flex; justify-content: center; gap: 10px; margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px; }
+        .dark-mode .teacher-actions { border-top-color: rgba(255,255,255,0.1); }
+        .teacher-actions button { background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s; font-size: 15px; }
+        .dark-mode .teacher-actions button { color: #94a3b8; }
+        .teacher-actions button:hover { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-brand"><i class="fa-solid fa-graduation-cap"></i> SmartClass</div>
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                    <li><a href="Students.html"><i class="fa-solid fa-user-graduate"></i> Students</a></li>
+                    <li class="active"><a href="teachers.html"><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
+                    <li><a href="attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a></li>
+                    <li><a href="assignments.html"><i class="fa-solid fa-book-open"></i> Assignments</a></li>
+                    <li><a href="announcements.html"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+                    <li><a href="timetable.html"><i class="fa-solid fa-clock"></i> Timetable</a></li>
+                </ul>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Teacher Management</h2>
+                <div class="user-profile">
+                    <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                </div>
+            </header>
+
+            <div class="action-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="searchTeacherInput" placeholder="Search teachers..." onkeyup="filterTeachers()">
+                </div>
+                <button class="btn-add" onclick="openTeacherModal()"><i class="fa-solid fa-plus"></i> Add Teacher</button>
+            </div>
+
+            <div class="cards-grid" id="teacherGridContainer">
+                <!-- Teacher Cards will be populated dynamically -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="teacherModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Add New Teacher</h3>
+                <button class="modal-close" onclick="closeTeacherModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="teacherDataForm" onsubmit="saveTeacher(event)">
+                <input type="hidden" id="teacherIdInput">
+                <input type="text" id="teacherNameInput" class="form-control" placeholder="Teacher Name" required>
+                <input type="text" id="teacherSubjectInput" class="form-control" placeholder="Subject Specialization" required>
+                <input type="text" id="teacherQualsInput" class="form-control" placeholder="Qualifications (e.g. M.Sc)" required>
+                <button type="submit" class="btn-add" style="width: 100%; justify-content: center; margin-top: 10px;">Save Teacher</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Main app.js handles toggleTheme
+        
+        function openTeacherModal(editingId = null) { 
+            const modal = document.getElementById('teacherModal');
+            const form = document.getElementById('teacherDataForm');
+            
+            if(editingId) {
+                const teachers = JSON.parse(localStorage.getItem('teachersData')) || [];
+                const teacher = teachers.find(t => t.id === editingId);
+                if(teacher) {
+                    document.getElementById('teacherIdInput').value = teacher.id;
+                    document.getElementById('teacherNameInput').value = teacher.name;
+                    document.getElementById('teacherSubjectInput').value = teacher.subject;
+                    document.getElementById('teacherQualsInput').value = teacher.quals;
+                    document.querySelector('.modal-header h3').innerText = "Edit Teacher";
+                }
+            } else {
+                form.reset();
+                document.getElementById('teacherIdInput').value = "";
+                document.querySelector('.modal-header h3').innerText = "Add New Teacher";
+            }
+            
+            modal.classList.add('active'); 
+        }
+        
+        function closeTeacherModal() { document.getElementById('teacherModal').classList.remove('active'); }
+        
+        window.editTeacher = function(id) { openTeacherModal(id); };
+        window.deleteTeacher = function(id) { deleteTeacherData(id); };
+
+        function filterTeachers() {
+            let input = document.getElementById("searchTeacherInput");
+            let filter = input.value.toUpperCase();
+            let cards = document.getElementsByClassName("teacher-card");
+            for (let i = 0; i < cards.length; i++) {
+                let nameStr = cards[i].querySelector(".teacher-name").innerText;
+                let subjStr = cards[i].querySelector(".teacher-subject").innerText;
+                if (nameStr.toUpperCase().indexOf(filter) > -1 || subjStr.toUpperCase().indexOf(filter) > -1) { 
+                    cards[i].style.display = ""; 
+                } else { 
+                    cards[i].style.display = "none"; 
+                }
+            }
+        }
+    </script>
+</body>
+</html>

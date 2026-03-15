@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom | Announcements</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <style>
+        .sidebar { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.5); display: flex; flex-direction: column; justify-content: space-between; }
+        .dark-mode .sidebar { background: rgba(30,41,59,0.8); border-right-color: rgba(255,255,255,0.1); }
+        .sidebar-brand { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .sidebar-menu { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-menu li a { display: flex; align-items: center; gap: 15px; padding: 14px 20px; text-decoration: none; color: var(--text-muted); font-weight: 500; border-radius: 12px; transition: 0.3s; }
+        .sidebar-menu li a:hover, .sidebar-menu li.active a { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(79,70,229,0.3); transform: translateX(5px); }
+        .dark-mode .sidebar-menu li a { color: #94a3b8; } .dark-mode .sidebar-menu li a:hover, .dark-mode .sidebar-menu li.active a { color: white; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); padding: 15px 30px; border-radius: var(--border-radius); box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(255,255,255,0.5); }
+        .dark-mode .topbar { background: rgba(30,41,59,0.6); border-color: rgba(255,255,255,0.05); }
+
+        .announcements-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .post-box {
+            background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 40px;
+        }
+        .dark-mode .post-box { background: rgba(30,41,59,0.8); border-color: rgba(255,255,255,0.1); }
+
+        .form-control { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.5); font-family: inherit; font-size: 15px; outline: none; transition: 0.3s; }
+        .form-control:focus { border-color: var(--primary-color); background: white; }
+        .dark-mode .form-control { background: #0f172a; border-color: rgba(255,255,255,0.1); color: white; }
+        .dark-mode .form-control:focus { background: #1e293b; border-color: var(--primary-color); }
+        textarea.form-control { resize: vertical; min-height: 120px; }
+
+        .btn-post { background: linear-gradient(135deg, var(--primary-color), #6366f1); color: white; padding: 12px 30px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(79,70,229,0.3); display: flex; align-items: center; gap: 8px; float: right; }
+        .btn-post:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79,70,229,0.4); }
+
+        /* Announcement Feed */
+        .feed-header { margin-bottom: 20px; font-size: 20px; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+        .dark-mode .feed-header { color: white; }
+
+        .announcement-card {
+            background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border-radius: 16px; padding: 25px; border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 5px 20px rgba(0,0,0,0.03); margin-bottom: 20px; transition: 0.3s;
+        }
+        .dark-mode .announcement-card { background: rgba(30,41,59,0.7); border-color: rgba(255,255,255,0.1); }
+        .announcement-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+
+        .author-info { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .author-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #34d399); display: flex; justify-content: center; align-items: center; color: white; font-size: 18px; }
+        .author-avatar.admin { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+
+        .author-name { font-weight: 700; font-size: 16px; color: var(--text-dark); }
+        .dark-mode .author-name { color: white; }
+        .post-time { font-size: 12px; color: var(--text-muted); }
+        .dark-mode .post-time { color: #94a3b8; }
+        
+        .announcement-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--primary-color); }
+        .announcement-body { font-size: 15px; color: #4b5563; line-height: 1.6; }
+        .dark-mode .announcement-body { color: #cbd5e1; }
+        
+        /* Pin badge */
+        .pin-badge { font-size: 12px; padding: 4px 10px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: #ef4444; font-weight: 600; margin-left: auto; display: flex; align-items: center; gap: 5px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-brand"><i class="fa-solid fa-graduation-cap"></i> SmartClass</div>
+                <ul class="sidebar-menu">
+                    <li><a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                    <li><a href="Students.html"><i class="fa-solid fa-user-graduate"></i> Students</a></li>
+                    <li><a href="teachers.html"><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
+                    <li><a href="attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a></li>
+                    <li><a href="assignments.html"><i class="fa-solid fa-book-open"></i> Assignments</a></li>
+                    <li class="active"><a href="announcements.html"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+                    <li><a href="timetable.html"><i class="fa-solid fa-clock"></i> Timetable</a></li>
+                </ul>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="index.html" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h2>Notice Board</h2>
+                <div class="user-profile">
+                    <button class="theme-toggle" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                </div>
+            </header>
+
+            <div class="announcements-container">
+                
+                <!-- Post Announcement Box -->
+                <div class="post-box">
+                    <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-pen-nib"></i> Post an Announcement</h3>
+                    <form onsubmit="postAnnouncement(event)">
+                        <input type="text" class="form-control" placeholder="Announcement Title" required>
+                        <textarea class="form-control" placeholder="What do you want to announce to the class?" required></textarea>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label style="font-size: 14px; color: var(--text-muted); cursor: pointer; display: flex; align-items:center; gap:8px;">
+                                <input type="checkbox"> Pin this announcement
+                            </label>
+                            <button type="submit" class="btn-post"><i class="fa-solid fa-paper-plane"></i> Publish</button>
+                        </div>
+                    </form>
+                    <div style="clear:both;"></div>
+                </div>
+
+                <!-- Feed -->
+                <div class="feed">
+                    <h3 class="feed-header"><i class="fa-regular fa-bell"></i> Recent Announcements</h3>
+                    
+                    <div class="announcement-card">
+                        <div class="author-info">
+                            <div class="author-avatar admin"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div>
+                                <div class="author-name">Principal Office</div>
+                                <div class="post-time">Posted 2 hours ago</div>
+                            </div>
+                            <div class="pin-badge"><i class="fa-solid fa-thumbtack"></i> Pinned</div>
+                        </div>
+                        <div class="announcement-title">School Closure for Formatting Assessment</div>
+                        <div class="announcement-body">
+                            Dear Students and Staff, please be informed that the school will be closed tomorrow for standardizing our assessment tests. Classes will resume normally on the day after tomorrow. Please use this time for your assignments.
+                        </div>
+                    </div>
+
+                    <div class="announcement-card">
+                        <div class="author-info">
+                            <div class="author-avatar"><i class="fa-solid fa-chalkboard-user"></i></div>
+                            <div>
+                                <div class="author-name">Mr. Wilson Roberts</div>
+                                <div class="post-time">Posted yesterday</div>
+                            </div>
+                        </div>
+                        <div class="announcement-title">Mathematics Mid-Term Syllabus updated</div>
+                        <div class="announcement-body">
+                            The syllabus for next week's Mathematics mid-term has been updated. Chapter 4 is entirely removed from the test scope. Focus deeply on Chapters 1 to 3! Best of luck.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Main app.js handles toggleTheme
+        function postAnnouncement(e) {
+            e.preventDefault();
+            alert("Announcement published! (Mock Action)");
+            e.target.reset();
+        }
+    </script>
+</body>
+</html>

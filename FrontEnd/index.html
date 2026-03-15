@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom | Login</title>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Main Premium CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <div class="login-wrapper">
+        <!-- Animated floating shapes for premium background effect -->
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+
+        <!-- Glassmorphism Login Card -->
+        <div class="login-card glass-panel">
+            <div class="logo-container">
+                <i class="fa-solid fa-graduation-cap"></i>
+                <h2>Smart Classroom</h2>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <div class="input-wrapper" id="usernameWrapper">
+                        <i class="fa-regular fa-user"></i>
+                        <input type="text" id="username" placeholder="Username" autocomplete="off">
+                    </div>
+                    <div class="error-message" id="usernameError">Please enter a valid username.</div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper" id="passwordWrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="password" placeholder="Password">
+                    </div>
+                    <div class="error-message" id="passwordError">Please enter your password.</div>
+                </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper" id="roleWrapper">
+                        <i class="fa-solid fa-users-gear"></i>
+                        <select id="role">
+                            <option value="" disabled selected>Select Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="student">Student</option>
+                        </select>
+                    </div>
+                    <div class="error-message" id="roleError">Please select a role.</div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Core Javascript for Form Validation and Routing -->
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

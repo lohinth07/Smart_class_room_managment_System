@@ -1,0 +1,1 @@
+package com.classroom.servlet;\n\npublic class LoginServlet {\n    public boolean login(String user, String pwd, String role) { return "admin".equals(user) && "1234".equals(pwd) && "ADMIN".equals(role); }\n}\n

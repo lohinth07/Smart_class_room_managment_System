@@ -1,0 +1,29 @@
+.chart-box {
+
+    margin-top: 30px;
+
+    background: rgb(171, 236, 220);
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 5px 20px rgba(163, 239, 230, 0.1);
+
+}
+
+.dark {
+
+    background: #0f172a;
+    color: white;
+
+}
+
+.dark .card,
+.dark table,
+.dark .chart-box {
+
+    background: #1e293b;
+    color: white;
+
+}

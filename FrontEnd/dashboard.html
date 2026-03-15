@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Classroom | Dashboard</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Main Premium CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* Specific Dashboard Styles overrides */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .dark-mode .sidebar {
+            background: rgba(30, 41, 59, 0.8);
+            border-right-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 20px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-menu li a:hover, .sidebar-menu li.active a {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            transform: translateX(5px);
+        }
+
+        .dark-mode .sidebar-menu li a {
+            color: #94a3b8;
+        }
+        
+        .dark-mode .sidebar-menu li a:hover, .dark-mode .sidebar-menu li.active a {
+            color: white;
+        }
+        
+        .logout-btn {
+            margin-top: auto;
+            color: #ef4444 !important;
+        }
+        
+        .logout-btn:hover {
+            background: #fef2f2 !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .dark-mode .logout-btn:hover {
+             background: rgba(239, 68, 68, 0.1) !important;
+        }
+
+        /* Topbar & Header */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dark-mode .topbar {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 600;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), #34d399);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-dark);
+            margin-right: 20px;
+            transition: transform 0.3s;
+        }
+
+        .dark-mode .theme-toggle { color: white; }
+        .theme-toggle:hover { transform: rotate(30deg); }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            padding: 25px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .dark-mode .stat-card {
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .icon-blue { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .icon-green { background: linear-gradient(135deg, #10b981, #34d399); }
+        .icon-orange { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .icon-purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+
+        .stat-info h3 {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .stat-info h2 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .dark-mode .stat-info h3 { color: #94a3b8; }
+
+        /* Chart Section */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .dark-mode .chart-container {
+            background: rgba(30, 41, 59, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-layout">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div>
+                <div class="sidebar-brand">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    SmartClass
+                </div>
+                <ul class="sidebar-menu">
+                    <li class="active"><a href="dashboard.html"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                    <li><a href="Students.html"><i class="fa-solid fa-user-graduate"></i> Students</a></li>
+                    <li><a href="teachers.html"><i class="fa-solid fa-chalkboard-user"></i> Teachers</a></li>
+                    <li><a href="attendance.html"><i class="fa-solid fa-calendar-check"></i> Attendance</a></li>
+                    <li><a href="assignments.html"><i class="fa-solid fa-book-open"></i> Assignments</a></li>
+                    <li><a href="announcements.html"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
+                    <li><a href="timetable.html"><i class="fa-solid fa-clock"></i> Timetable</a></li>
+                </ul>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li><a href="index.html" class="logout-btn" onclick="logout(event)"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Topbar -->
+            <header class="topbar">
+                <div style="display: flex; align-items: center;">
+                    <h2>Welcome back, <span id="userNameDisplay">Admin</span>! 👋</h2>
+                </div>
+                <div class="user-profile">
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                        <i class="fa-solid fa-moon" id="themeIcon"></i>
+                    </button>
+                    <div class="avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <div id="userRoleDisplay" style="font-size: 12px; color: var(--text-muted);">Administrator</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Key Statistics Cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-blue">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Students</h3>
+                        <h2 id="totalStudentsCount">120</h2>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-purple">
+                        <i class="fa-solid fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Teachers</h3>
+                        <h2 id="totalTeachersCount">15</h2>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-orange">
+                        <i class="fa-solid fa-school"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Today's Classes</h3>
+                        <h2 data-target="8">8</h2>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-green">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Avg Attendance</h3>
+                        <h2>92%</h2>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Chart -->
+            <section class="chart-container">
+                <h3>Attendance Overview (Weekly)</h3>
+                <div style="height: 350px;">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- Application Script -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        // Init Dashboard Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            initDashboard();
+            renderChart();
+        });
+
+        function initDashboard() {
+            // Retrieve session info
+            const userData = localStorage.getItem('userObj');
+            if(userData) {
+                try {
+                    const parsed = JSON.parse(userData);
+                    document.getElementById('userNameDisplay').textContent = parsed.username;
+                    document.getElementById('userRoleDisplay').textContent = parsed.role.toUpperCase();
+                } catch(e) {}
+            }
+            
+            // Update Stat Counts based on actual LocalStorage Data
+            const students = JSON.parse(localStorage.getItem('studentsData')) || [];
+            const teachers = JSON.parse(localStorage.getItem('teachersData')) || [];
+            
+            const stdCountEl = document.getElementById('totalStudentsCount');
+            const tchCountEl = document.getElementById('totalTeachersCount');
+            
+            if(stdCountEl) stdCountEl.innerText = students.length;
+            if(tchCountEl) tchCountEl.innerText = teachers.length;
+        }
+
+
+
+        function logout(e) {
+            e.preventDefault();
+            localStorage.removeItem('userObj');
+            window.location.href = 'index.html';
+        }
+
+        let attendanceChartInstance = null;
+        function renderChart() {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#f1f5f9' : '#1f2937';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)';
+
+            if (attendanceChartInstance) {
+                attendanceChartInstance.destroy();
+            }
+
+            attendanceChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                    datasets: [{
+                        label: 'Attendance %',
+                        data: [95, 90, 93, 88, 97],
+                        backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                        borderColor: '#4f46e5',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(79, 70, 229, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: textColor } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 50,
+                            max: 100,
+                            grid: { color: gridColor },
+                            ticks: { color: textColor }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: textColor }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
